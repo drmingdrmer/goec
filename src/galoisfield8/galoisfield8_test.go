@@ -6,13 +6,13 @@ import (
 
 type (
 	case2 struct {
-		a, b, r Elt
+		a, b, r byte
 		mes string
 	}
 )
 
 func TestNew( t *testing.T ) {
-	f := New()
+	f := NewField()
 	if f.E == 1 {} else {
 		t.Errorf( "f.E should be 1 but ", f.E )
 	}
@@ -22,7 +22,7 @@ func TestNew( t *testing.T ) {
 }
 func TestPowAndLog( t *testing.T ) {
 
-	f := New()
+	f := NewField()
 
 	cases := []case2{
 		{ 0, 0, 0, "" },
@@ -37,7 +37,7 @@ func TestPowAndLog( t *testing.T ) {
 	}
 
 	var (
-		r Elt
+		r byte
 	)
 
 	for _, c := range cases {
@@ -58,7 +58,7 @@ func TestPowAndLog( t *testing.T ) {
 }
 func TestAddAndSub( t *testing.T ) {
 
-	f := New()
+	f := NewField()
 
 	// 2^254 = 0x8e
 	cases := []case2{
@@ -76,7 +76,7 @@ func TestAddAndSub( t *testing.T ) {
 	PrintTable( f.LogTable )
 
 	var (
-		r Elt
+		r byte
 	)
 
 	for _, c := range cases {
@@ -103,7 +103,7 @@ func TestAddAndSub( t *testing.T ) {
 }
 func TestMulAndDiv( t *testing.T ) {
 
-	f := New()
+	f := NewField()
 
 	// 2^254 = 0x8e
 	cases := []case2{
@@ -117,7 +117,7 @@ func TestMulAndDiv( t *testing.T ) {
 	}
 
 	var (
-		r Elt
+		r byte
 	)
 
 	PrintTable( f.PowerTable )
@@ -148,4 +148,23 @@ func TestMulAndDiv( t *testing.T ) {
 			}
 		}
 	}
+}
+
+
+func BenchmarkMul( b *testing.B ) {
+	f := NewField()
+
+	// a := 3
+	// c := 4
+
+	var (
+		c byte = 0
+	)
+	for i := 0; i < b.N; i++ {
+		// a = a ^ c
+		// c = f.MulTable[ ((i&0xff)<<8) & 34  ]
+		// c = f.MulBy( byte(i&0xff), 34 )
+		c = f.MulByAct( 24, 34 )
+	}
+	_ = c
 }

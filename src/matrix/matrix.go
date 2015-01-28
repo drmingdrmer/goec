@@ -10,7 +10,7 @@ type (
 	Matrix8 struct {
 		n, m int
 
-		elts [][]gf8.Elt
+		elts [][]byte
 		f *gf8.F
 	}
 )
@@ -26,7 +26,7 @@ var (
 )
 
 func InitField() error {
-	f = gf8.New()
+	f = gf8.NewField()
 	return nil
 }
 
@@ -38,11 +38,11 @@ func NewMatrix( n int, m int ) ( mtx *Matrix8, err error ) {
 	mtx = &Matrix8{
 		n:n,
 		m:m,
-		elts: make( [][]gf8.Elt, n ),
+		elts: make( [][]byte, n ),
 		f: f,
 	}
 	for i := 0; i < n; i++ {
-		mtx.elts[i] = make( []gf8.Elt, m )
+		mtx.elts[i] = make( []byte, m )
 	}
 	return
 }
@@ -71,10 +71,10 @@ func ( mtx *Matrix8 ) Copy() *Matrix8{
 		n: mtx.n,
 		m: mtx.m,
 		f: mtx.f,
-		elts: make( [][]gf8.Elt, mtx.n ),
+		elts: make( [][]byte, mtx.n ),
 	}
 	for i := 0; i < mtx.n; i++ {
-		m.elts[i] = make( []gf8.Elt, mtx.m )
+		m.elts[i] = make( []byte, mtx.m )
 		copy( m.elts[i], mtx.elts[i] )
 	}
 	return &m
@@ -113,15 +113,15 @@ func ( mtx *Matrix8 ) SubMatrix( rows []int, cols []int ) *Matrix8{
 	return m2
 }
 
-func ( mtx *Matrix8 ) MulVec( v []gf8.Elt ) []gf8.Elt {
-	rst := make( []gf8.Elt, mtx.m )
+func ( mtx *Matrix8 ) MulVec( v []byte ) []byte {
+	rst := make( []byte, mtx.m )
 	mtx.MulVecTo( v, rst )
 	return rst
 }
 
-func ( mtx *Matrix8 ) MulVecTo( v []gf8.Elt, rst []gf8.Elt ) {
+func ( mtx *Matrix8 ) MulVecTo( v []byte, rst []byte ) {
 	var (
-		sum gf8.Elt = 0
+		sum byte = 0
 	)
 
 	f := mtx.f
@@ -135,28 +135,28 @@ func ( mtx *Matrix8 ) MulVecTo( v []gf8.Elt, rst []gf8.Elt ) {
 }
 func ( mtx *Matrix8 ) MulVecToBytes( v []byte, rst []byte ) {
 	var (
-		sum gf8.Elt = 0
+		sum byte = 0
 	)
 
 	f := mtx.f
 	for j := 0; j < mtx.m; j++ {
 		sum = 0
 		for i := 0; i < mtx.n; i++ {
-			sum = f.Add( sum, f.MulBy( gf8.Elt(v[i]), gf8.Elt(mtx.elts[i][j]) ) )
+			sum = f.Add( sum, f.MulBy( byte(v[i]), byte(mtx.elts[i][j]) ) )
 		}
 		rst[j] = byte(sum)
 	}
 }
 func ( mtx *Matrix8 ) MulByVecToBytes( v []byte, rst []byte ) {
 	var (
-		sum gf8.Elt = 0
+		sum byte = 0
 	)
 
 	f := mtx.f
 	for i := 0; i < mtx.n; i++ {
 		sum = 0
 		for j := 0; j < mtx.m; j++ {
-			sum = f.Add( sum, f.MulBy( gf8.Elt(mtx.elts[i][j]), gf8.Elt(v[j]) ) )
+			sum = f.Add( sum, f.MulBy( byte(mtx.elts[i][j]), byte(v[j]) ) )
 		}
 		rst[i] = byte(sum)
 	}
@@ -174,7 +174,7 @@ func ( mtx *Matrix8 ) MulBy( m2 *Matrix8 ) ( rst *Matrix8, err error ) {
 	}
 
 	var (
-		sum gf8.Elt
+		sum byte
 	)
 
 	for i := 0; i < mtx.n; i++ {
@@ -197,8 +197,8 @@ func ( mtx *Matrix8 ) MulInplace( m *Matrix8 ) ( err error ) {
 	}
 
 	var (
-		line = make( []gf8.Elt, mtx.m )
-		sum gf8.Elt
+		line = make( []byte, mtx.m )
+		sum byte
 	)
 
 	for i := 0; i < mtx.n; i++ {
@@ -302,7 +302,7 @@ func ( mtx *Matrix8 ) swapRow( src int, dst int ) {
 		es[src][i] = d0
 	}
 }
-func ( mtx *Matrix8 ) mulRow( dst int, ratio gf8.Elt ) {
+func ( mtx *Matrix8 ) mulRow( dst int, ratio byte ) {
 	f := mtx.f
 	es := mtx.elts
 
@@ -310,7 +310,7 @@ func ( mtx *Matrix8 ) mulRow( dst int, ratio gf8.Elt ) {
 		es[dst][i] = f.MulBy( es[dst][i], ratio )
 	}
 }
-func ( mtx *Matrix8 ) addRowTo( src int, dst int, ratio gf8.Elt ) {
+func ( mtx *Matrix8 ) addRowTo( src int, dst int, ratio byte ) {
 	f := mtx.f
 	es := mtx.elts
 
@@ -321,7 +321,7 @@ func ( mtx *Matrix8 ) addRowTo( src int, dst int, ratio gf8.Elt ) {
 		es[dst][i] = f.Add( d0, f.MulBy( s0, ratio ) )
 	}
 }
-func ( mtx *Matrix8 ) addColTo( src int, dst int, ratio gf8.Elt ) {
+func ( mtx *Matrix8 ) addColTo( src int, dst int, ratio byte ) {
 	f := mtx.f
 	es := mtx.elts
 
@@ -333,7 +333,7 @@ func ( mtx *Matrix8 ) addColTo( src int, dst int, ratio gf8.Elt ) {
 	}
 }
 
-func ( mtx *Matrix8 ) Set( i int, j int, v gf8.Elt ) {
+func ( mtx *Matrix8 ) Set( i int, j int, v byte ) {
 	mtx.elts[i][j] = v
 }
 func ( mtx *Matrix8 ) GetField() *gf8.F {
@@ -351,7 +351,7 @@ func ( mtx *Matrix8 ) Print() {
 		fmt.Println()
 	}
 }
-func ( mtx *Matrix8 ) CopySlice( s [][]gf8.Elt ) ( err error ) {
+func ( mtx *Matrix8 ) CopySlice( s [][]byte ) ( err error ) {
 
 	if mtx.n != len(s) {
 		err = ErrDifferenSize
@@ -372,7 +372,7 @@ func ( mtx *Matrix8 ) CopySlice( s [][]gf8.Elt ) ( err error ) {
 
 	return
 }
-func NewFromSlice( s [][]gf8.Elt ) ( mtx *Matrix8, err error ) {
+func NewFromSlice( s [][]byte ) ( mtx *Matrix8, err error ) {
 	if s == nil {
 		return
 	}

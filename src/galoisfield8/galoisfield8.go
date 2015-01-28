@@ -7,28 +7,28 @@ import (
 type (
 	// ElementCaster interface {}
 
-	Elt uint8
-	BigElt uint16
-	Table []Elt
+	OpTable []byte
 
 	FieldOperator interface {
 
-		Pow( Elt, Elt ) Elt
-		Log( Elt ) Elt
+		Pow( byte, byte ) byte
+		Log( byte ) byte
 
-		Add( Elt, Elt ) Elt
-		Sub( Elt, Elt ) Elt
-		MulBy( Elt, Elt ) Elt
-		Div( Elt, Elt ) Elt
+		Add( byte, byte ) byte
+		Sub( byte, byte ) byte
+		MulBy( byte, byte ) byte
+		Div( byte, byte ) byte
 
-		GetE() Elt
-		GetZero() Elt
+		GetE() byte
+		GetZero() byte
 	}
 
 	F struct {
-		E, Zero Elt
-		PowerTable Table
-		LogTable Table
+		E, Zero byte
+		PowerTable OpTable
+		LogTable OpTable
+
+		MulTable OpTable
 	}
 )
 
@@ -40,13 +40,14 @@ const (
 	Order int = 256
 )
 
-func New() *F {
+func NewField() *F {
 
 	f := F{
 		E: 1,
 		Zero: 0,
-		PowerTable: make( Table, Order ),
-		LogTable: make( Table, Order ),
+		PowerTable: make( OpTable, Order ),
+		LogTable: make( OpTable, Order ),
+		MulTable: make( OpTable, Order * Order ),
 	}
 
 	var (
@@ -55,19 +56,26 @@ func New() *F {
 
 	for i := 0; i < Order; i++ {
 
-		f.PowerTable[ i ] = Elt(n)
-		f.LogTable[ n ] = Elt(i)
+		f.PowerTable[ i ] = byte(n)
+		f.LogTable[ n ] = byte(i)
 
 		n *= 2
 		if n >= Order  {
 			n = n ^ Prime
 		}
 	}
+
+	for i := 0; i < Order; i++ {
+		for j := 0; j < Order; j++ {
+			f.MulTable[ i*Order + j ] = f.MulByAct( byte(i), byte(j) )
+		}
+	}
+
 	return &f
 }
 
-func PrintTable( t Table ) {
-	for i := 0; i < Order; i++ {
+func PrintTable( t OpTable ) {
+	for i := 0; i < len(t); i++ {
 		fmt.Printf( " %02x", t[ i ] )
 		if i % 16 == 15 {
 			fmt.Println( "" )
@@ -75,7 +83,7 @@ func PrintTable( t Table ) {
 	}
 }
 
-func ( f *F )Pow( n Elt, pow Elt ) Elt {
+func ( f *F )Pow( n byte, pow byte ) byte {
 	if n == 0 {
 		return 0
 	}
@@ -85,15 +93,22 @@ func ( f *F )Pow( n Elt, pow Elt ) Elt {
 	return f.PowerTable[ l ]
 }
 
-func ( f *F )Log( n Elt ) Elt {
+func ( f *F )Log( n byte ) byte {
 	if n == 0 {
 		panic( "log of 0" )
 	}
 	return f.LogTable[ n ]
 }
 
-func ( f *F )MulBy( a Elt, b Elt ) Elt {
-	if a == 0 || b == 0 {
+func ( f *F )MulBy( a byte, b byte ) byte {
+	return f.MulByAct( a, b )
+	// return f.MulTable[ (int(a)<<8) + int(b) ]
+}
+
+func ( f *F )MulByAct( a byte, b byte ) byte {
+
+	// if a == 0 || b == 0 {
+	if a*b == 0 {
 		return 0
 	}
 
@@ -105,7 +120,7 @@ func ( f *F )MulBy( a Elt, b Elt ) Elt {
 	return f.PowerTable[ l ]
 }
 
-func ( f *F ) Div( a Elt, b Elt ) Elt {
+func ( f *F ) Div( a byte, b byte ) byte {
 	if b == 0 {
 		panic( "divide by 0" )
 	}
@@ -121,10 +136,10 @@ func ( f *F ) Div( a Elt, b Elt ) Elt {
 	return f.PowerTable[ l ]
 }
 
-func ( f *F ) Add( a Elt, b Elt ) Elt {
+func ( f *F ) Add( a byte, b byte ) byte {
 	return a ^ b
 }
 
-func ( f *F ) Sub( a Elt, b Elt ) Elt {
+func ( f *F ) Sub( a byte, b byte ) byte {
 	return f.Add( a, b )
 }
