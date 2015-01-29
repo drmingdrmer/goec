@@ -159,12 +159,22 @@ func BenchmarkMul( b *testing.B ) {
 
 	var (
 		c byte = 0
+		d byte = 0
+		e byte = 0
+		g byte = 0
 	)
+	t := f.MulTable
 	for i := 0; i < b.N; i++ {
 		// a = a ^ c
-		// c = f.MulTable[ ((i&0xff)<<8) & 34  ]
+		c = t[ ((i&0xff)<<8) + 34  ]
+		d = t[ ((i&0xff)<<8) + 35  ]
+		e = t[ ((i&0xff)<<8) + 36  ]
+		g = t[ ((i&0xff)<<8) + 37  ]
 		// c = f.MulBy( byte(i&0xff), 34 )
-		c = f.MulByAct( 24, 34 )
+		// c = f.MulByAct( 24, 34 )
 	}
 	_ = c
+	_ = d
+	_ = e
+	_ = g
 }

@@ -139,11 +139,27 @@ func ( mtx *Matrix8 ) MulVecToBytes( v []byte, rst []byte ) {
 	)
 
 	f := mtx.f
+	t := f.MulTable
 	for j := 0; j < mtx.m; j++ {
 		sum = 0
-		for i := 0; i < mtx.n; i++ {
-			sum = f.Add( sum, f.MulBy( byte(v[i]), byte(mtx.elts[i][j]) ) )
+		vv := mtx.elts
+
+		if mtx.n == 3 && false {
+			sum = (
+				t[ (int(v[0])<<8) + int(vv[0][j]) ] ^
+				t[ (int(v[1])<<8) + int(vv[1][j]) ] ^
+				t[ (int(v[2])<<8) + int(vv[2][j]) ] )
+			
+		} else {
+
+			for i := 0; i < mtx.n; i++ {
+				// sum ^= f.MulTable[ (int(v[i])<<8) + int(mtx.elts[i][j]) ]
+				// sum ^= f.MulTable[ (int(v[i])<<8) + int(vv[i]) ]
+				sum ^=f.MulBy( byte(v[i]), byte(mtx.elts[i][j]) )
+			}
 		}
+		
+
 		rst[j] = byte(sum)
 	}
 }
@@ -153,10 +169,21 @@ func ( mtx *Matrix8 ) MulByVecToBytes( v []byte, rst []byte ) {
 	)
 
 	f := mtx.f
+	t := f.MulTable
+
 	for i := 0; i < mtx.n; i++ {
 		sum = 0
-		for j := 0; j < mtx.m; j++ {
-			sum = f.Add( sum, f.MulBy( byte(mtx.elts[i][j]), byte(v[j]) ) )
+		vv := mtx.elts[i]
+		if mtx.n == 3 {
+			sum = (
+				t[ (int(v[0])<<8) + int(vv[0]) ] ^
+				t[ (int(v[1])<<8) + int(vv[1]) ] ^
+				t[ (int(v[2])<<8) + int(vv[2]) ] )
+			
+		} else {
+			for j := 0; j < mtx.m; j++ {
+				sum = f.Add( sum, f.MulBy( byte(mtx.elts[i][j]), byte(v[j]) ) )
+			}
 		}
 		rst[i] = byte(sum)
 	}

@@ -101,14 +101,13 @@ func ( f *F )Log( n byte ) byte {
 }
 
 func ( f *F )MulBy( a byte, b byte ) byte {
-	return f.MulByAct( a, b )
-	// return f.MulTable[ (int(a)<<8) + int(b) ]
+	// return f.MulByAct( a, b )
+	return f.MulTable[ (int(a)<<8) + int(b) ]
 }
 
 func ( f *F )MulByAct( a byte, b byte ) byte {
 
-	// if a == 0 || b == 0 {
-	if a*b == 0 {
+	if a == 0 || b == 0 {
 		return 0
 	}
 

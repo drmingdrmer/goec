@@ -152,18 +152,6 @@ func TestInverse( t *testing.T ) {
 				{0, 0, 1},
 			},
 		},
-		{
-			a: tmatrix{
-				{0x44, 0x80, 0x5c, },
-				{0x49, 0x8f, 0xd3, },
-				{0x01, 0x7f, 0xf9, },
-			},
-			b: tmatrix{
-				{0x92, 0x96, 0xed,},
-				{0x24, 0x7f, 0x73,},
-				{0x60, 0xaa, 0xfe,},
-			},
-		},
 	}
 
 	for _, c := range cases {
@@ -207,8 +195,6 @@ func TestInverse( t *testing.T ) {
 }
 
 func TestInverseRandom( t *testing.T ) {
-	// TODO
-	return
 	InitField()
 	fmt.Println( "---- inverse random" )
 
@@ -567,6 +553,7 @@ func BenchmarkMulVec( b *testing.B ) {
 	rst := []byte{ 0, 0, 0 }
 
 	for i := 0; i < b.N; i++ {
+		// ma.MulVecToBytes( v, rst )
 		ma.MulByVecToBytes( v, rst )
 	}
 }
